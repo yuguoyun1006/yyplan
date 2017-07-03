@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="      
+           http://www.springframework.org/schema/beans      
+           http://www.springframework.org/schema/beans/spring-beans-4.0.xsd      
+           http://www.springframework.org/schema/context      
+           http://www.springframework.org/schema/context/spring-context-4.0.xsd     
+           http://www.springframework.org/schema/mvc      
+           http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd">
+	<mvc:annotation-driven />
+	<context:component-scan base-package="com.ajx.*"></context:component-scan>
+<!-- 	<bean
+		class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter">
+		<property name="messageConverters">
+			<list>
+				<bean
+					class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter" />
+			</list>
+		</property>
+	</bean> -->
+	<mvc:resources location="WEB-INF/images/" mapping="/images/**" />
+	<mvc:resources location="WEB-INF/js/" mapping="/js/**" />
+	<mvc:resources location="WEB-INF/css/" mapping="/css/**" />
+	<mvc:resources location="WEB-INF/jsp/" mapping="/jsp/**" />
+	<mvc:resources location="WEB-INF/fonts/" mapping="/fonts/**" />
+	<mvc:resources location="WEB-INF/Wopop_files/" mapping="/Wopop_files/**" />
+	<mvc:interceptors>
+		<mvc:interceptor>
+			<mvc:mapping path="/**"/>
+			<mvc:exclude-mapping path="/images/**"/>
+			<mvc:exclude-mapping path="/js/**"/>
+			<mvc:exclude-mapping path="/css/**"/>
+			<mvc:exclude-mapping path="/jsp/**"/>
+			<mvc:exclude-mapping path="/fonts/**"/>
+			<mvc:exclude-mapping path="/Wopop_files/**"/>
+			<bean class="com.ajx.supervise.filter.LoginInterceptor"></bean>
+		</mvc:interceptor>
+		<mvc:interceptor>
+			<mvc:mapping path="/**"/>
+			<mvc:exclude-mapping path="/images/**"/>
+			<mvc:exclude-mapping path="/js/**"/>
+			<mvc:exclude-mapping path="/css/**"/>
+			<mvc:exclude-mapping path="/jsp/**"/>
+			<mvc:exclude-mapping path="/fonts/**"/>
+			<mvc:exclude-mapping path="/Wopop_files/**"/>
+			<bean class="com.ajx.supervise.filter.AuthInterceptor"></bean>
+		</mvc:interceptor>
+	</mvc:interceptors>
+<!-- 	<bean
+		class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping" /> -->
+	<bean
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix" value="/WEB-INF/jsp/" />
+		<property name="suffix" value=".jsp" /><!--可为空,方便实现自已的依据扩展名来选择视图解释类的逻辑 -->
+		<property name="viewClass"
+			value="org.springframework.web.servlet.view.JstlView" />  <!-- Spring MVC默认是JstlView -->
+	</bean>
+</beans>

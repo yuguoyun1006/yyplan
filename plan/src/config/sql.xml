@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd 
+	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.1.xsd">
+
+	<util:map id="sqlsMap" map-class="java.util.HashMap" key-type="java.lang.String"
+		value-type="java.lang.String">
+		<!-- 统计 -->
+		<entry key="taskcount">
+			<value><![CDATA[					
+			select count(*) from plan_information where plan_time BETWEEN ? and ? and expire='到期' UNION all
+			select count(*) from plan_information where plan_time BETWEEN ? and ? and stop = '终止' union ALL
+			select count(*) from plan_information where plan_time BETWEEN ? and ? and ontime='按期' union ALL
+			select count(*) from plan_information where plan_time BETWEEN ? and ? and overdue='超期' union ALL
+			select count(*) from plan_information where plan_time BETWEEN ? and ? and notdue='未到期' union ALL
+			select count(*) from plan_information where plan_time BETWEEN ? and ? and continued='持续' union all
+			select (select count(*) from plan_information where plan_time BETWEEN ? and ? and overdue='超期')+
+			(select count(*) from plan_information where plan_time BETWEEN ? and ? and ontime='按期')union ALL
+			select (select count(*) from plan_information where plan_time BETWEEN ? and ? and expire='到期')+
+			(select count(*) from plan_information where plan_time BETWEEN ? and ? and notdue='未到期');
+			]]></value>
+		</entry>
+		<!-- 统计 -->
+		<entry key="taskcount1">
+			<value><![CDATA[					
+			select count(*) from plan_information where  expire='到期' UNION all
+			select count(*) from plan_information where  stop = '终止' union ALL
+			select count(*) from plan_information where  ontime='按期' union ALL
+			select count(*) from plan_information where  overdue='超期' union ALL
+			select count(*) from plan_information where  notdue='未到期' union ALL
+			select count(*) from plan_information where  continued='持续' union all
+			select (select count(*) from plan_information where  overdue='超期')+
+			(select count(*) from plan_information where  ontime='按期')union ALL
+			select (select count(*) from plan_information  where expire='到期')+
+			(select count(*) from plan_information where  notdue='未到期');
+			]]></value>
+		</entry>
+		<!-- 统计 -->
+		<entry key="taskstatistics">
+			<value><![CDATA[					
+			select d.`name`,IFNULL(t.ontime,0) ontime,IFNULL(t.overdue,0) overdue,IFNULL(t.notdue,0) notdue,IFNULL(t.expire,0) expire,
+IFNULL(t.continued,0) continued,IFNULL(t.stop,0) stop from department d left join 
+(select plan_information.work_unit,sum(case when plan_information.continued='持续' then 1 else 0 end) as continued,
+sum(case when plan_information.ontime='按时' then 1 else 0 end) as ontime,
+sum(case when plan_information.overdue='超时' then 1 else 0 end) as overdue,
+sum(case when plan_information.notdue='未到期' then 1 else 0 end) as notdue,
+sum(case when plan_information.expire='到期' then 1 else 0 end) as expire,
+sum(case when plan_information.stop='中止' then 1 else 0 end) as stop from plan_information group by plan_information.work_unit) t
+on d.Dept_id = t.work_unit;
+			]]></value>
+		</entry>
+		<entry key="taskstatisticsbytime">
+			<value><![CDATA[					
+			select d.`name`,IFNULL(t.ontime,0) ontime,IFNULL(t.overdue,0) overdue,IFNULL(t.notdue,0) notdue,IFNULL(t.expire,0) expire,
+IFNULL(t.continued,0) continued,IFNULL(t.stop,0) stop,t.work_unit from department d left join 
+(select plan_information.work_unit,sum(case when plan_information.continued='持续' then 1 else 0 end) as continued,
+sum(case when plan_information.ontime='按时' then 1 else 0 end) as ontime,
+sum(case when plan_information.overdue='超时' then 1 else 0 end) as overdue,
+sum(case when plan_information.notdue='未到期' then 1 else 0 end) as notdue,
+sum(case when plan_information.expire='到期' then 1 else 0 end) as expire,
+sum(case when plan_information.stop='中止' then 1 else 0 end) as stop from plan_information
+--Awhere create_time between ? and ?
+--Band meeting_content = ? 
+group by plan_information.work_unit) t
+on d.Dept_id = t.work_unit 
+--Cwhere t.work_unit = ?
+;
+			]]></value>
+		</entry>
+	</util:map>
+</beans>
+		

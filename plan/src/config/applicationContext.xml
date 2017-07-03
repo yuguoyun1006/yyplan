@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans-4.0.xsd 
+	http://www.springframework.org/schema/aop 
+	http://www.springframework.org/schema/aop/spring-aop-4.0.xsd 
+	http://www.springframework.org/schema/tx 
+	http://www.springframework.org/schema/tx/spring-tx-4.0.xsd">
+	<bean id="propertyConfigurer"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath:config/jdbc.properties</value>
+			</list>
+		</property>
+	</bean>
+	<aop:config proxy-target-class="true" />
+	<import resource="classpath:config/sql.xml"/>
+	<!-- 自动扫描web包 ,将带有注解的类 纳入spring容器管理 -->
+	<!-- <context:component-scan base-package="com.*"></context:component-scan> -->
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+		<property name="driverClass" value="${jdbc.driverClassName}" />
+		<property name="jdbcUrl" value="${jdbc.url}" />
+		<property name="user" value="${jdbc.username}" />
+		<property name="password" value="${jdbc.password}" />
+		<property name="autoCommitOnClose" value="true" />
+		<property name="checkoutTimeout" value="${cpool.checkoutTimeout}" />
+		<property name="initialPoolSize" value="${cpool.minPoolSize}" />
+		<property name="minPoolSize" value="${cpool.minPoolSize}" />
+		<property name="maxPoolSize" value="${cpool.maxPoolSize}" />
+		<property name="maxIdleTime" value="${cpool.maxIdleTime}" />
+		<property name="acquireIncrement" value="${cpool.acquireIncrement}" />
+		<property name="maxIdleTimeExcessConnections" value="${cpool.maxIdleTimeExcessConnections}" />
+	</bean>
+	<bean id="sessionFactory"
+		class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="mappingDirectoryLocations">
+			<list>
+				<value>classpath:/com/**/pojo/</value><!-- ’**’指定多个文件(路径)名,在com/ctfo/包下任何pojo路径下的hbm.xml文件都被加载为映射文件 -->
+			</list>
+		</property>
+		<property name="hibernateProperties">
+			<value>
+				hibernate.dialect=${hibernate.dialect}
+				hibernate.show_sql=true
+				hibernate.format_sql=false
+				hibernate.query.substitutions=true 1,
+				false 0
+				hibernate.jdbc.batch_size=20
+				hibernate.cache.use_query_cache=true 
+			</value>
+		</property>
+	</bean>
+	<bean id="transactionManager"
+		class="org.springframework.orm.hibernate4.HibernateTransactionManager">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	 <!-- 文件上传 开始-->
+    <!-- SpringMVC处理文件上传 -->
+	<bean id="multipartResolver"
+       class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+       <property name="maxUploadSize" value="209715200" /><!-- 设置上传文件的最大尺寸为200MB -->  
+       <property name="maxInMemorySize" value="1048576" />        
+       <property name="defaultEncoding" value="utf-8" />
+	</bean>
+	<!--使用AOP的事物管理配置 -->
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<tx:method name="add*" propagation="REQUIRED" />
+			<tx:method name="insert*" propagation="REQUIRED" />
+			<tx:method name="save*" propagation="REQUIRED" />
+			<tx:method name="update*" propagation="REQUIRED" />
+			<tx:method name="edit*" propagation="REQUIRED" />
+			<tx:method name="del*" propagation="REQUIRED" />
+			<tx:method name="delete*" propagation="REQUIRED" />
+			<tx:method name="remove*" propagation="REQUIRED" />
+			<tx:method name="create*" propagation="REQUIRED" />
+			<tx:method name="import*" propagation="REQUIRED" />
+			<tx:method name="modify*" propagation="REQUIRED" />
+			<tx:method name="commit*" propagation="REQUIRED" />
+			<tx:method name="reject*" propagation="REQUIRED" />
+			<tx:method name="process*" propagation="REQUIRED" />
+			<tx:method name="change*" propagation="REQUIRED" />
+			<tx:method name="start*" propagation="REQUIRED" />
+			<tx:method name="execute*" propagation="REQUIRED" />
+			<tx:method name="lock*" propagation="REQUIRED" />
+			<tx:method name="complete*" propagation="REQUIRED" />
+			<tx:method name="append*" propagation="REQUIRED" />
+
+			<tx:method name="search*" propagation="REQUIRED" read-only="true" />
+			<tx:method name="query*" propagation="REQUIRED" read-only="true" />
+			<tx:method name="find*" propagation="REQUIRED" read-only="true" />
+			<tx:method name="get*" propagation="REQUIRED" read-only="true" />
+			<tx:method name="list*" propagation="REQUIRED" read-only="true" />
+
+		</tx:attributes>
+	</tx:advice>
+	<!--以aop的方式切入到类 -->
+	<aop:config>
+		<!-- 定义切面(关注点) -->
+		<aop:pointcut id="serviceMethod" expression="execution(* com.*.service.*.*(..))" />
+		<!-- 整合通知和切面,即把通知应用到切面 -->
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="serviceMethod" />
+	</aop:config>
+
+</beans>  
